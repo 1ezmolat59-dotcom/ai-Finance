@@ -38,6 +38,9 @@ export default function Navbar() {
             <a href="#" className={styles.navLink}>
               Blog
             </a>
+            <a href="/settings" className={styles.navLink} style={{ color: "var(--accent-start)" }}>
+              ⚙️ Settings
+            </a>
           </div>
 
           <div className={styles.navActions}>

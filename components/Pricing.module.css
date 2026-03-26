@@ -7,6 +7,66 @@
   margin-bottom: 64px;
 }
 
+.toggleContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.toggleLabel {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.activeLabel {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.saveBadge {
+  background: var(--accent-start);
+  color: var(--bg-primary);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+}
+
+.toggleSwitch {
+  position: relative;
+  width: 56px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.toggleHandle {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  background: var(--accent-gradient);
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-glow);
+}
+
+.handleAnnual {
+  transform: translateX(24px);
+}
+
 .cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -159,6 +219,11 @@
 .ctaFilled:hover {
   box-shadow: var(--shadow-glow-strong);
   transform: translateY(-1px);
+}
+
+.ctaLoading {
+  opacity: 0.7;
+  cursor: wait;
 }
 
 @media (max-width: 860px) {

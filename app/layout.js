@@ -30,9 +30,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
-        <CurrencyProvider>
-          {children}
-        </CurrencyProvider>
+        <CurrencyProvider>{children}</CurrencyProvider>
       </body>
     </html>
   );

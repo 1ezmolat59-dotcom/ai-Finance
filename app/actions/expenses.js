@@ -32,17 +32,28 @@ export async function getExpenses(clientId) {
 export async function addExpenseToDB(clientId, expenseParam) {
   if (!clientId) throw new Error("Client ID is missing.");
 
-  // Check 24-hr limit strictly on the server side
-  const windowStart = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-  
-  const { data: recent, error: countError } = await supabase
-    .from("expenses")
-    .select("id")
+  // Check if user is Pro (skip limit for Pro users)
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("is_pro")
     .eq("client_id", clientId)
-    .gte("created_at", windowStart);
+    .single();
 
-  if (!countError && recent && recent.length >= 3) {
-    throw new Error("Freemium limit reached. You cannot add more than 3 expenses in 24 hours.");
+  const isPro = profile?.is_pro === true;
+
+  // Check 24-hr limit strictly on the server side (free users only)
+  if (!isPro) {
+    const windowStart = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+    const { data: recent, error: countError } = await supabase
+      .from("expenses")
+      .select("id")
+      .eq("client_id", clientId)
+      .gte("created_at", windowStart);
+
+    if (!countError && recent && recent.length >= 3) {
+      throw new Error("Freemium limit reached. You cannot add more than 3 expenses in 24 hours.");
+    }
   }
 
   // Insert the expense record

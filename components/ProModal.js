@@ -1,21 +1,39 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createCheckoutSession, getStripePriceIds } from "../app/actions/checkout";
 import styles from "./ProModal.module.css";
 
 export default function ProModal({ isOpen, onClose }) {
   const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [priceIds, setPriceIds] = useState({ monthlyPriceId: null });
 
   useEffect(() => {
     setMounted(true);
+    getStripePriceIds().then(setPriceIds);
   }, []);
 
   if (!mounted || !isOpen) return null;
 
+  const handleUpgrade = async () => {
+    try {
+      setLoading(true);
+      const clientId = localStorage.getItem("finance_ai_client_id") || "anonymous";
+      const url = await createCheckoutSession(priceIds.monthlyPriceId, clientId);
+      if (url) window.location.href = url;
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Checkout failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <div 
-        className={styles.modal} 
+      <div
+        className={styles.modal}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -53,8 +71,12 @@ export default function ProModal({ isOpen, onClose }) {
         </ul>
 
         <div className={styles.actions}>
-          <button className={`btn-primary ${styles.upgradeBtn}`}>
-            <span>Upgrade to Pro — $9.99/mo</span>
+          <button
+            className={`btn-primary ${styles.upgradeBtn}`}
+            onClick={handleUpgrade}
+            disabled={loading}
+          >
+            <span>{loading ? "Redirecting..." : "Upgrade to Pro — $12/mo"}</span>
           </button>
           <button className={styles.cancelBtn} onClick={onClose}>
             Maybe later

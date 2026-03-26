@@ -1,12 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useCurrency } from "./CurrencyProvider";
 import { useExpenseTracker } from "../hooks/useExpenseTracker";
 import ProModal from "./ProModal";
 import styles from "./Hero.module.css";
-
-// Removed static currencies object
 
 const chartHeights = [35, 55, 45, 70, 60, 85, 50, 75, 65, 90, 55, 80];
 
@@ -16,61 +15,76 @@ const baseTransactions = [
     name: "Grocery Store",
     category: "Essentials",
     baseAmount: -84.32,
+    originalCurrency: "USD",
     type: "neg",
     bg: "rgba(255, 107, 107, 0.1)",
   },
   {
-    icon: "💰",
-    name: "Salary Deposit",
-    category: "Income",
-    baseAmount: 4500.0,
-    type: "pos",
-    bg: "rgba(0, 212, 170, 0.1)",
+    icon: "🛫",
+    name: "Flight to Paris",
+    category: "Travel",
+    baseAmount: -120.00,
+    originalCurrency: "EUR",
+    type: "neg",
+    bg: "rgba(255, 165, 0, 0.1)",
   },
   {
-    icon: "☕",
-    name: "AI Savings Tip",
-    category: "Insight",
-    baseAmount: 42,
-    type: "tip",
-    bg: "rgba(0, 180, 216, 0.1)",
+    icon: "🚆",
+    name: "London Tube",
+    category: "Transport",
+    baseAmount: -15.50,
+    originalCurrency: "GBP",
+    type: "neg",
+    bg: "rgba(99, 102, 241, 0.1)",
   },
 ];
 
-const baseBalance = 12847.63;
+const sampleExpenses = [
+  { icon: "☕", name: "Coffee Shop", category: "Food & Drink", baseAmount: 5.40, type: "neg", bg: "rgba(255, 165, 0, 0.1)" },
+  { icon: "🎬", name: "Movie Tickets", category: "Entertainment", baseAmount: 24.00, type: "neg", bg: "rgba(99, 102, 241, 0.1)" },
+  { icon: "🏋️", name: "Gym Membership", category: "Health", baseAmount: 45.00, type: "neg", bg: "rgba(0, 212, 170, 0.1)" },
+];
 
-function formatAmountLocal(value, formatAmount, baseCurrency, isTip) {
-  const formatted = formatAmount(value, baseCurrency);
-  if (isTip) return `Save ${formatted}/mo`;
-  return formatted;
-}
-
-function formatBalanceLocal(convert, formatAmount, baseCurrency) {
-  const converted = convert(baseBalance, "USD", baseCurrency);
-  return formatAmount(converted, baseCurrency);
-}
+const baseBalanceUSD = 12847.63;
 
 export default function Hero() {
-  const { baseCurrency, setBaseCurrency, currencyMeta, convert, formatAmount } = useCurrency();
-  const { expenses, freeExpensesUsed, canAddExpense, addExpense, limit } = useExpenseTracker();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { baseCurrency, currencyMeta, rateSource, convert, formatAmount } =
+    useCurrency();
+  const { expenses, freeExpensesUsed, canAddExpense, addExpense, limit, loading } =
+    useExpenseTracker();
+  const [showProModal, setShowProModal] = useState(false);
 
-  const handleAddExpense = () => {
-    if (canAddExpense) {
-      addExpense({
-        icon: "🛍️",
-        name: "Quick Purchase",
-        category: "Shopping",
-        baseAmount: -(Math.floor(Math.random() * 50) + 10),
-        type: "neg",
-        bg: "rgba(99, 102, 241, 0.1)",
-      });
-    } else {
-      setIsModalOpen(true);
+  const currentMeta = currencyMeta[baseCurrency] || currencyMeta.USD;
+  const convertedBalance = convert(baseBalanceUSD, "USD", baseCurrency);
+
+  const handleAddExpense = async () => {
+    if (!canAddExpense) {
+      setShowProModal(true);
+      return;
     }
+    // Pick a random sample expense to add
+    const sample = sampleExpenses[Math.floor(Math.random() * sampleExpenses.length)];
+    await addExpense(sample);
   };
 
-  const allTransactions = [...expenses, ...baseTransactions].slice(0, 4);
+  // Combine user expenses with static preview transactions for display
+  const displayTransactions = expenses.length > 0
+    ? expenses.slice(0, 5).map((e) => ({
+        icon: e.icon,
+        name: e.name,
+        category: e.category,
+        baseAmount: -Math.abs(e.baseAmount),
+        originalCurrency: "USD",
+        type: "neg",
+        bg: e.bg || "rgba(255, 107, 107, 0.1)",
+      }))
+    : baseTransactions;
+
+  const counterColor = !canAddExpense
+    ? "var(--danger)"
+    : freeExpensesUsed >= 2
+      ? "var(--warning, #f59e0b)"
+      : "var(--accent-start)";
 
   return (
     <section className={styles.hero} id="hero">
@@ -95,7 +109,7 @@ export default function Hero() {
           <p className={styles.heroDescription}>
             Stop guessing where your money goes. Our AI analyzes your spending,
             predicts upcoming bills, and delivers personalized insights to help
-            you save more — effortlessly.
+            you save more — effortlessly. Automatically converted globally.
           </p>
 
           <div className={styles.heroCtas}>
@@ -128,27 +142,22 @@ export default function Hero() {
           <div className={styles.dashboardCard}>
             <div className={styles.dashHeader}>
               <span className={styles.dashTitle}>Portfolio Overview</span>
-              <span className={styles.dashBadge}>Live</span>
+              <span className={styles.dashBadge}>
+                {rateSource === "live" ? "Live Rates" : "Fallback Rates"}
+              </span>
             </div>
 
-            {/* Currency Selector */}
+            {/* Current Base Currency Display linked to Settings */}
             <div className={styles.currencySelector}>
-              {Object.entries(currencyMeta).map(([code, meta]) => (
-                <button
-                  key={code}
-                  className={`${styles.currencyBtn} ${
-                    baseCurrency === code ? styles.currencyBtnActive : ""
-                  }`}
-                  onClick={() => setBaseCurrency(code)}
-                  id={`currency-${code.toLowerCase()}`}
-                >
-                  <span className={styles.currencyFlag}>{meta.flag}</span>
-                  {code}
-                </button>
-              ))}
+              <Link href="/settings" className={`${styles.currencyBtn} ${styles.currencyBtnActive}`} style={{ textDecoration: 'none' }}>
+                <span className={styles.currencyFlag}>{currentMeta.flag}</span>
+                Base Currency: {baseCurrency} (Change ⚙️)
+              </Link>
             </div>
 
-            <div className={styles.dashBalance}>{formatBalanceLocal(convert, formatAmount, baseCurrency)}</div>
+            <div className={styles.dashBalance}>
+              {formatAmount(convertedBalance, baseCurrency)}
+            </div>
             <div className={styles.dashChange}>↑ +12.4% this month</div>
 
             <div className={styles.dashChart}>
@@ -161,58 +170,68 @@ export default function Hero() {
               ))}
             </div>
 
+            {/* Free usage counter and Add Expense button */}
             <div className={styles.addExpenseWrapper}>
               <div className={styles.expenseCounter}>
-                <span className={styles.counterDot} style={{ background: canAddExpense ? 'var(--success)' : 'var(--danger)' }} />
-                {freeExpensesUsed}/{limit} free expenses used
+                <span
+                  className={styles.counterDot}
+                  style={{ background: counterColor, color: counterColor }}
+                />
+                <span style={{ color: counterColor }}>
+                  {freeExpensesUsed}/{limit} free expenses used
+                </span>
               </div>
-              <button 
+              <button
                 className={`${styles.addExpenseBtn} ${!canAddExpense ? styles.addExpenseDisabled : ""}`}
                 onClick={handleAddExpense}
+                disabled={loading}
               >
-                <span>➕ Add Expense</span>
+                {!canAddExpense ? "Upgrade to Pro" : "+ Add Expense"}
               </button>
             </div>
 
             <div className={styles.dashItems}>
-              {allTransactions.map((tx, i) => (
-                <div key={i} className={styles.dashItem}>
-                  <div className={styles.dashItemLeft}>
-                    <div
-                      className={styles.dashItemIcon}
-                      style={{ background: tx.bg }}
-                    >
-                      {tx.icon}
-                    </div>
-                    <div>
-                      <div className={styles.dashItemName}>{tx.name}</div>
-                      <div className={styles.dashItemCategory}>
-                        {tx.category}
+              {displayTransactions.map((tx, i) => {
+                const convertedAmount = convert(
+                  tx.baseAmount,
+                  tx.originalCurrency,
+                  baseCurrency
+                );
+
+                return (
+                  <div key={i} className={styles.dashItem}>
+                    <div className={styles.dashItemLeft}>
+                      <div
+                        className={styles.dashItemIcon}
+                        style={{ background: tx.bg }}
+                      >
+                        {tx.icon}
+                      </div>
+                      <div>
+                        <div className={styles.dashItemName}>{tx.name}</div>
+                        <div className={styles.dashItemCategory}>
+                          {tx.category}
+                        </div>
                       </div>
                     </div>
+                    <div
+                      className={
+                        tx.type === "neg"
+                          ? styles.dashItemAmountNeg
+                          : styles.dashItemAmountPos
+                      }
+                    >
+                      {formatAmount(convertedAmount, baseCurrency)}
+                    </div>
                   </div>
-                  <div
-                    className={
-                      tx.type === "neg"
-                        ? styles.dashItemAmountNeg
-                        : styles.dashItemAmountPos
-                    }
-                  >
-                    {formatAmountLocal(
-                      convert(tx.baseAmount, "USD", baseCurrency),
-                      formatAmount,
-                      baseCurrency,
-                      tx.type === "tip"
-                    )}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
       </div>
 
-      <ProModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <ProModal isOpen={showProModal} onClose={() => setShowProModal(false)} />
     </section>
   );
 }
