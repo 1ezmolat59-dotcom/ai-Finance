@@ -3,17 +3,17 @@
 import Stripe from "stripe";
 import { headers } from "next/headers";
 
-const ALLOWED_PRICE_IDS = new Set([
-  process.env.STRIPE_PRO_MONTHLY_PRICE_ID,
-  process.env.STRIPE_PRO_ANNUAL_PRICE_ID,
-]);
-
 export async function createCheckoutSession(priceId, clientId) {
   if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error("Stripe secret key is missing from environment variables (.env.local).");
+    throw new Error("Stripe secret key is missing from environment variables.");
   }
 
-  if (!ALLOWED_PRICE_IDS.has(priceId)) {
+  const allowedPriceIds = new Set([
+    process.env.STRIPE_PRO_MONTHLY_PRICE_ID,
+    process.env.STRIPE_PRO_ANNUAL_PRICE_ID,
+  ]);
+
+  if (!priceId || !allowedPriceIds.has(priceId)) {
     throw new Error("Invalid price ID.");
   }
 
@@ -47,5 +47,12 @@ export async function getStripePriceIds() {
   return {
     monthlyPriceId: process.env.STRIPE_PRO_MONTHLY_PRICE_ID,
     annualPriceId: process.env.STRIPE_PRO_ANNUAL_PRICE_ID,
+  };
+}
+
+export async function getPaymentLinks() {
+  return {
+    monthlyLink: process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK_MONTHLY,
+    annualLink: process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK_ANNUAL,
   };
 }
