@@ -2,15 +2,18 @@
 
 import { useState, useEffect } from "react";
 import styles from "./Pricing.module.css";
-import { createCheckoutSession, getStripePriceIds } from "../app/actions/checkout";
+import { createCheckoutSession, getStripePriceIds, getPaymentLinks } from "../app/actions/checkout";
 
 export default function Pricing() {
   const [isAnnual, setIsAnnual] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(null);
   const [priceIds, setPriceIds] = useState({ monthlyPriceId: null, annualPriceId: null });
+  const [paymentLinks, setPaymentLinks] = useState({ monthlyLink: null, annualLink: null });
 
   useEffect(() => {
     getStripePriceIds().then(setPriceIds);
+    getPaymentLinks().then(setPaymentLinks);
   }, []);
 
   const handleCheckout = async (tierName) => {
@@ -38,6 +41,28 @@ export default function Pricing() {
     }
   };
 
+  const handleCopyLink = async () => {
+    const link = isAnnual ? paymentLinks.annualLink : paymentLinks.monthlyLink;
+    if (!link) return;
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(isAnnual ? "annual" : "monthly");
+      setTimeout(() => setCopied(null), 2000);
+    } catch {
+      // Fallback for non-HTTPS contexts
+      const textarea = document.createElement("textarea");
+      textarea.value = link;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      setCopied(isAnnual ? "annual" : "monthly");
+      setTimeout(() => setCopied(null), 2000);
+    }
+  };
+
+  const currentPaymentLink = isAnnual ? paymentLinks.annualLink : paymentLinks.monthlyLink;
+
   const tiers = [
     {
       name: "Free",
@@ -45,10 +70,10 @@ export default function Pricing() {
       period: "forever",
       description: "Perfect for getting started with smart finance tracking.",
       features: [
+        "3 expenses per 24 hours",
         "Connect up to 2 accounts",
         "Basic spending insights",
         "Monthly budget summaries",
-        "Bill reminders",
         "Community support",
       ],
       cta: "Current Plan",
@@ -60,7 +85,7 @@ export default function Pricing() {
       period: isAnnual ? "/yr" : "/mo",
       description: "Advanced AI features for serious financial growth.",
       features: [
-        "Unlimited account connections",
+        "Unlimited expense tracking",
         "AI-powered spending analysis",
         "Custom budget alerts",
         "Investment tracking",
@@ -68,7 +93,7 @@ export default function Pricing() {
         "Priority support",
         "Export to CSV / PDF",
       ],
-      cta: loading ? "Loading..." : (isAnnual ? "Start Annual Pro" : "Start Monthly Pro"),
+      cta: loading ? "Redirecting..." : (isAnnual ? "Start Annual Pro" : "Start Monthly Pro"),
       popular: true,
     },
     {
@@ -104,8 +129,8 @@ export default function Pricing() {
 
           <div className={styles.toggleContainer}>
             <span className={`${styles.toggleLabel} ${!isAnnual ? styles.activeLabel : ""}`}>Monthly</span>
-            <button 
-              className={styles.toggleSwitch} 
+            <button
+              className={styles.toggleSwitch}
               onClick={() => setIsAnnual(!isAnnual)}
               aria-pressed={isAnnual}
             >
@@ -143,15 +168,47 @@ export default function Pricing() {
                   </li>
                 ))}
               </ul>
-              <button
-                onClick={() => handleCheckout(tier.name)}
-                className={`${styles.cardCta} ${
-                  tier.popular ? styles.ctaFilled : styles.ctaOutline
-                } ${loading && tier.popular ? styles.ctaLoading : ""}`}
-                id={`pricing-cta-${tier.name.toLowerCase()}`}
-              >
-                {tier.cta}
-              </button>
+
+              {/* Pro tier: Stripe hosted checkout + payment link sharing */}
+              {tier.popular ? (
+                <div className={styles.proActions}>
+                  <button
+                    onClick={() => handleCheckout(tier.name)}
+                    className={`${styles.cardCta} ${styles.ctaFilled} ${loading ? styles.ctaLoading : ""}`}
+                    id={`pricing-cta-${tier.name.toLowerCase()}`}
+                    disabled={loading}
+                  >
+                    {tier.cta}
+                  </button>
+                  {currentPaymentLink && (
+                    <div className={styles.paymentLinkRow}>
+                      <a
+                        href={currentPaymentLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={styles.paymentLink}
+                      >
+                        Open Payment Page
+                      </a>
+                      <button
+                        onClick={handleCopyLink}
+                        className={styles.copyLinkBtn}
+                        title="Copy shareable payment link"
+                      >
+                        {copied ? "Copied!" : "Copy Link"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={() => handleCheckout(tier.name)}
+                  className={`${styles.cardCta} ${styles.ctaOutline}`}
+                  id={`pricing-cta-${tier.name.toLowerCase()}`}
+                >
+                  {tier.cta}
+                </button>
+              )}
             </div>
           ))}
         </div>

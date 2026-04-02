@@ -44,10 +44,10 @@ export default function Navbar() {
           </div>
 
           <div className={styles.navActions}>
-            <button className={styles.navSignIn}>Sign In</button>
-            <button className={`btn-primary ${styles.navCta}`}>
+            <a href="#hero" className={styles.navSignIn}>Dashboard</a>
+            <a href="#pricing" className={`btn-primary ${styles.navCta}`}>
               <span>Get Started</span>
-            </button>
+            </a>
           </div>
 
           <button
@@ -94,13 +94,14 @@ export default function Navbar() {
         >
           Blog
         </a>
-        <button
+        <a
+          href="#pricing"
           className="btn-primary"
-          style={{ marginTop: 16 }}
+          style={{ marginTop: 16, textDecoration: "none" }}
           onClick={() => setMobileOpen(false)}
         >
           <span>Get Started Free</span>
-        </button>
+        </a>
       </div>
     </>
   );
