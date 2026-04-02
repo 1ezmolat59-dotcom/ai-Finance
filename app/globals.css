@@ -2,13 +2,11 @@
    AI Finance Tracker — Design System
    ============================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-
 :root {
   /* Colors */
-  --bg-primary: #0a0e27;
-  --bg-secondary: #0f1338;
-  --bg-card: rgba(15, 19, 56, 0.6);
+  --bg-primary: #07071a;
+  --bg-secondary: #0c0c25;
+  --bg-card: rgba(12, 12, 37, 0.7);
   --bg-glass: rgba(255, 255, 255, 0.04);
   --bg-glass-hover: rgba(255, 255, 255, 0.08);
 
@@ -16,24 +14,24 @@
   --text-secondary: rgba(255, 255, 255, 0.7);
   --text-muted: rgba(255, 255, 255, 0.45);
 
-  --accent-start: #00d4aa;
-  --accent-end: #00b4d8;
+  --accent-start: #8b5cf6;
+  --accent-end: #06b6d4;
   --accent-gradient: linear-gradient(135deg, var(--accent-start), var(--accent-end));
-  --accent-gradient-hover: linear-gradient(135deg, #00e6bb, #00c5e8);
+  --accent-gradient-hover: linear-gradient(135deg, #9d6ff8, #22d3ee);
 
-  --glow-color: rgba(0, 212, 170, 0.15);
-  --glow-strong: rgba(0, 212, 170, 0.3);
+  --glow-color: rgba(139, 92, 246, 0.18);
+  --glow-strong: rgba(139, 92, 246, 0.35);
 
   --border-subtle: rgba(255, 255, 255, 0.06);
   --border-light: rgba(255, 255, 255, 0.1);
-  --border-accent: rgba(0, 212, 170, 0.3);
+  --border-accent: rgba(139, 92, 246, 0.35);
 
   --danger: #ff6b6b;
-  --warning: #ffd93d;
-  --success: #00d4aa;
+  --warning: #f59e0b;
+  --success: #10b981;
 
   /* Typography */
-  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-primary: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: 'Geist Mono', 'SF Mono', 'Fira Code', monospace;
 
   /* Spacing */
@@ -195,7 +193,7 @@ button {
 
 .btn-secondary:hover {
   border-color: var(--accent-start);
-  background: rgba(0, 212, 170, 0.05);
+  background: rgba(139, 92, 246, 0.05);
   transform: translateY(-2px);
 }
 
@@ -205,7 +203,7 @@ button {
   align-items: center;
   gap: 8px;
   padding: 8px 20px;
-  background: rgba(0, 212, 170, 0.08);
+  background: rgba(139, 92, 246, 0.08);
   border: 1px solid var(--border-accent);
   border-radius: var(--radius-full);
   font-size: 0.85rem;

@@ -4,6 +4,7 @@ import Features from "../components/Features";
 import BudgetAlerts from "../components/BudgetAlerts";
 import Pricing from "../components/Pricing";
 import Footer from "../components/Footer";
+import CsvConverterSection from "../components/CsvConverterSection";
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
         <Hero />
         <Features />
         <BudgetAlerts />
+        <CsvConverterSection />
         <Pricing />
       </main>
       <Footer />

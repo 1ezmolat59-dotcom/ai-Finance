@@ -7,45 +7,16 @@ import { useExpenseTracker } from "../hooks/useExpenseTracker";
 import ProModal from "./ProModal";
 import styles from "./Hero.module.css";
 
-const chartHeights = [35, 55, 45, 70, 60, 85, 50, 75, 65, 90, 55, 80];
-
-const baseTransactions = [
-  {
-    icon: "🛒",
-    name: "Grocery Store",
-    category: "Essentials",
-    baseAmount: -84.32,
-    originalCurrency: "USD",
-    type: "neg",
-    bg: "rgba(255, 107, 107, 0.1)",
-  },
-  {
-    icon: "🛫",
-    name: "Flight to Paris",
-    category: "Travel",
-    baseAmount: -120.00,
-    originalCurrency: "EUR",
-    type: "neg",
-    bg: "rgba(255, 165, 0, 0.1)",
-  },
-  {
-    icon: "🚆",
-    name: "London Tube",
-    category: "Transport",
-    baseAmount: -15.50,
-    originalCurrency: "GBP",
-    type: "neg",
-    bg: "rgba(99, 102, 241, 0.1)",
-  },
+const categoryOptions = [
+  { icon: "🛒", name: "Groceries", category: "Essentials", bg: "rgba(255, 107, 107, 0.1)" },
+  { icon: "☕", name: "Coffee", category: "Food & Drink", bg: "rgba(255, 165, 0, 0.1)" },
+  { icon: "🚆", name: "Transport", category: "Transport", bg: "rgba(99, 102, 241, 0.1)" },
+  { icon: "🎬", name: "Entertainment", category: "Entertainment", bg: "rgba(0, 212, 170, 0.1)" },
+  { icon: "🏋️", name: "Fitness", category: "Health", bg: "rgba(0, 180, 216, 0.1)" },
+  { icon: "🛫", name: "Travel", category: "Travel", bg: "rgba(255, 165, 0, 0.1)" },
+  { icon: "💊", name: "Healthcare", category: "Health", bg: "rgba(255, 107, 107, 0.1)" },
+  { icon: "🛍️", name: "Shopping", category: "Shopping", bg: "rgba(99, 102, 241, 0.1)" },
 ];
-
-const sampleExpenses = [
-  { icon: "☕", name: "Coffee Shop", category: "Food & Drink", baseAmount: 5.40, type: "neg", bg: "rgba(255, 165, 0, 0.1)" },
-  { icon: "🎬", name: "Movie Tickets", category: "Entertainment", baseAmount: 24.00, type: "neg", bg: "rgba(99, 102, 241, 0.1)" },
-  { icon: "🏋️", name: "Gym Membership", category: "Health", baseAmount: 45.00, type: "neg", bg: "rgba(0, 212, 170, 0.1)" },
-];
-
-const baseBalanceUSD = 12847.63;
 
 export default function Hero() {
   const { baseCurrency, currencyMeta, rateSource, convert, formatAmount } =
@@ -53,38 +24,79 @@ export default function Hero() {
   const { expenses, freeExpensesUsed, canAddExpense, addExpense, limit, loading } =
     useExpenseTracker();
   const [showProModal, setShowProModal] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({ name: "", amount: "", categoryIdx: 0, currency: "USD" });
+  const [submitting, setSubmitting] = useState(false);
 
   const currentMeta = currencyMeta[baseCurrency] || currencyMeta.USD;
-  const convertedBalance = convert(baseBalanceUSD, "USD", baseCurrency);
 
-  const handleAddExpense = async () => {
+  // Live balance: sum of all expenses
+  const totalSpent = expenses.reduce((sum, e) => sum + Math.abs(e.baseAmount), 0);
+
+  const handleAddClick = () => {
     if (!canAddExpense) {
       setShowProModal(true);
       return;
     }
-    // Pick a random sample expense to add
-    const sample = sampleExpenses[Math.floor(Math.random() * sampleExpenses.length)];
-    await addExpense(sample);
+    setShowForm(true);
   };
 
-  // Combine user expenses with static preview transactions for display
-  const displayTransactions = expenses.length > 0
-    ? expenses.slice(0, 5).map((e) => ({
-        icon: e.icon,
-        name: e.name,
-        category: e.category,
-        baseAmount: -Math.abs(e.baseAmount),
-        originalCurrency: "USD",
-        type: "neg",
-        bg: e.bg || "rgba(255, 107, 107, 0.1)",
-      }))
-    : baseTransactions;
+  const handleSubmitExpense = async (e) => {
+    e.preventDefault();
+    if (!formData.name.trim() || !formData.amount) return;
+
+    const cat = categoryOptions[formData.categoryIdx];
+    const enteredAmount = parseFloat(formData.amount);
+    // Convert entered amount to USD for storage (USD is pivot currency)
+    const baseAmount = convert(enteredAmount, formData.currency, "USD");
+    setSubmitting(true);
+    await addExpense({
+      icon: cat.icon,
+      name: formData.name.trim(),
+      category: cat.category,
+      baseAmount,
+      type: "neg",
+      bg: cat.bg,
+    });
+    setSubmitting(false);
+    setFormData({ name: "", amount: "", categoryIdx: 0, currency: "USD" });
+    setShowForm(false);
+  };
+
+  const handleExportCSV = () => {
+    if (!expenses.length) return;
+    const rows = [
+      ["Name", "Category", "Amount (USD)", `Amount (${baseCurrency})`, "Date"],
+      ...expenses.map((e) => [
+        e.name,
+        e.category,
+        e.baseAmount.toFixed(2),
+        convert(e.baseAmount, "USD", baseCurrency).toFixed(2),
+        new Date(e.date || e.created_at).toLocaleDateString(),
+      ]),
+    ];
+    const csv = rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "expenses.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const counterColor = !canAddExpense
     ? "var(--danger)"
     : freeExpensesUsed >= 2
       ? "var(--warning, #f59e0b)"
       : "var(--accent-start)";
+
+  // Chart heights based on real expense data (last 7 entries, or placeholders)
+  const chartData = [];
+  for (let i = 0; i < 12; i++) {
+    const exp = expenses[i];
+    chartData.push(exp ? Math.min(Math.max((Math.abs(exp.baseAmount) / 100) * 80, 15), 95) : 20 + Math.random() * 15);
+  }
 
   return (
     <section className={styles.hero} id="hero">
@@ -113,12 +125,12 @@ export default function Hero() {
           </p>
 
           <div className={styles.heroCtas}>
-            <button className="btn-primary" id="hero-cta-primary">
+            <a href="#pricing" className="btn-primary" id="hero-cta-primary">
               <span>Start Free Trial →</span>
-            </button>
-            <button className="btn-secondary" id="hero-cta-secondary">
+            </a>
+            <a href="#dashboard" className="btn-secondary" id="hero-cta-secondary">
               Watch Demo
-            </button>
+            </a>
           </div>
 
           <div className={styles.heroStats}>
@@ -137,13 +149,15 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* Right: Dashboard Mockup */}
-        <div className={styles.heroVisual}>
+        {/* Right: Live Dashboard */}
+        <div className={styles.heroVisual} id="dashboard">
           <div className={styles.dashboardCard}>
             <div className={styles.dashHeader}>
-              <span className={styles.dashTitle}>Portfolio Overview</span>
+              <span className={styles.dashTitle}>
+                {expenses.length > 0 ? "Your Dashboard" : "Portfolio Overview"}
+              </span>
               <span className={styles.dashBadge}>
-                {rateSource === "live" ? "Live Rates" : "Fallback Rates"}
+                {rateSource === "live" ? "Live" : "Offline"}
               </span>
             </div>
 
@@ -151,17 +165,24 @@ export default function Hero() {
             <div className={styles.currencySelector}>
               <Link href="/settings" className={`${styles.currencyBtn} ${styles.currencyBtnActive}`} style={{ textDecoration: 'none' }}>
                 <span className={styles.currencyFlag}>{currentMeta.flag}</span>
-                Base Currency: {baseCurrency} (Change ⚙️)
+                Base: {baseCurrency} (Change ⚙️)
               </Link>
             </div>
 
             <div className={styles.dashBalance}>
-              {formatAmount(convertedBalance, baseCurrency)}
+              {formatAmount(
+                convert(totalSpent, "USD", baseCurrency),
+                baseCurrency
+              )}
             </div>
-            <div className={styles.dashChange}>↑ +12.4% this month</div>
+            <div className={styles.dashChange}>
+              {expenses.length > 0
+                ? `${expenses.length} expense${expenses.length !== 1 ? "s" : ""} tracked`
+                : "No expenses yet — add one below"}
+            </div>
 
             <div className={styles.dashChart}>
-              {chartHeights.map((h, i) => (
+              {chartData.map((h, i) => (
                 <div
                   key={i}
                   className={styles.chartBar}
@@ -169,6 +190,19 @@ export default function Hero() {
                 />
               ))}
             </div>
+
+            {/* CSV Export */}
+            {expenses.length > 0 && (
+              <div style={{ textAlign: "right", marginBottom: 8 }}>
+                <button
+                  onClick={handleExportCSV}
+                  className={styles.addExpenseBtn}
+                  style={{ fontSize: "0.78rem", padding: "6px 12px" }}
+                >
+                  ↓ Export CSV
+                </button>
+              </div>
+            )}
 
             {/* Free usage counter and Add Expense button */}
             <div className={styles.addExpenseWrapper}>
@@ -183,49 +217,100 @@ export default function Hero() {
               </div>
               <button
                 className={`${styles.addExpenseBtn} ${!canAddExpense ? styles.addExpenseDisabled : ""}`}
-                onClick={handleAddExpense}
-                disabled={loading}
+                onClick={handleAddClick}
+                disabled={loading || submitting}
               >
-                {!canAddExpense ? "Upgrade to Pro" : "+ Add Expense"}
+                {!canAddExpense ? "Upgrade to Pro" : showForm ? "Cancel" : "+ Add Expense"}
               </button>
             </div>
 
-            <div className={styles.dashItems}>
-              {displayTransactions.map((tx, i) => {
-                const convertedAmount = convert(
-                  tx.baseAmount,
-                  tx.originalCurrency,
-                  baseCurrency
-                );
+            {/* Inline Expense Form */}
+            {showForm && canAddExpense && (
+              <form onSubmit={handleSubmitExpense} className={styles.expenseForm}>
+                <div className={styles.formRow}>
+                  <select
+                    className={styles.formSelect}
+                    value={formData.categoryIdx}
+                    onChange={(e) => setFormData(prev => ({ ...prev, categoryIdx: parseInt(e.target.value) }))}
+                  >
+                    {categoryOptions.map((c, i) => (
+                      <option key={i} value={i}>{c.icon} {c.category}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className={styles.formRow}>
+                  <input
+                    className={styles.formInput}
+                    type="text"
+                    placeholder="Expense name"
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    required
+                    autoFocus
+                  />
+                </div>
+                <div className={styles.formRow}>
+                  <input
+                    className={styles.formInput}
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    placeholder="Amount"
+                    value={formData.amount}
+                    onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
+                    required
+                  />
+                  <select
+                    className={styles.formSelect}
+                    value={formData.currency}
+                    onChange={(e) => setFormData(prev => ({ ...prev, currency: e.target.value }))}
+                    style={{ flex: "0 0 auto", width: "auto" }}
+                  >
+                    {Object.entries(currencyMeta).map(([code, meta]) => (
+                      <option key={code} value={code}>{meta.flag} {code}</option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  type="submit"
+                  className={styles.formSubmitBtn}
+                  disabled={submitting}
+                >
+                  {submitting ? "Saving..." : "Save Expense"}
+                </button>
+              </form>
+            )}
 
-                return (
-                  <div key={i} className={styles.dashItem}>
-                    <div className={styles.dashItemLeft}>
-                      <div
-                        className={styles.dashItemIcon}
-                        style={{ background: tx.bg }}
-                      >
-                        {tx.icon}
-                      </div>
-                      <div>
-                        <div className={styles.dashItemName}>{tx.name}</div>
-                        <div className={styles.dashItemCategory}>
-                          {tx.category}
+            <div className={styles.dashItems}>
+              {expenses.length > 0
+                ? expenses.slice(0, 5).map((e, i) => (
+                    <div key={e.id || i} className={styles.dashItem}>
+                      <div className={styles.dashItemLeft}>
+                        <div
+                          className={styles.dashItemIcon}
+                          style={{ background: e.bg || "rgba(255, 107, 107, 0.1)" }}
+                        >
+                          {e.icon}
+                        </div>
+                        <div>
+                          <div className={styles.dashItemName}>{e.name}</div>
+                          <div className={styles.dashItemCategory}>{e.category}</div>
                         </div>
                       </div>
+                      <div className={styles.dashItemAmountNeg}>
+                        {formatAmount(
+                          -Math.abs(convert(e.baseAmount, "USD", baseCurrency)),
+                          baseCurrency
+                        )}
+                      </div>
                     </div>
-                    <div
-                      className={
-                        tx.type === "neg"
-                          ? styles.dashItemAmountNeg
-                          : styles.dashItemAmountPos
-                      }
-                    >
-                      {formatAmount(convertedAmount, baseCurrency)}
-                    </div>
+                  ))
+                : (
+                  <div className={styles.dashItem} style={{ justifyContent: "center", opacity: 0.5 }}>
+                    <span>Your expenses will appear here</span>
                   </div>
-                );
-              })}
+                )
+              }
             </div>
           </div>
         </div>

@@ -13,6 +13,7 @@ export default function SettingsPage() {
     lastUpdated,
     rateSource,
     currencyMeta,
+    fallbackOnly,
   } = useCurrency();
 
   const currencies = Object.entries(currencyMeta);
@@ -118,16 +119,16 @@ export default function SettingsPage() {
                       {meta.flag} {meta.symbol} {code}
                     </span>
                     <span className={styles.rateValue}>
-                      {code === "NGN"
-                        ? rate.toLocaleString("en-US", { maximumFractionDigits: 0 })
+                      {(fallbackOnly?.has(code) || code === "NGN")
+                        ? rate.toLocaleString("en-US", { maximumFractionDigits: 2 })
                         : rate.toFixed(5)}
                     </span>
                     <span
                       className={`${styles.rateSource} ${
-                        code === "NGN" ? styles.rateFallback : ""
+                        fallbackOnly?.has(code) ? styles.rateFallback : ""
                       }`}
                     >
-                      {code === "NGN" ? "Fallback" : "Frankfurter"}
+                      {fallbackOnly?.has(code) ? "Fallback" : "Frankfurter"}
                     </span>
                   </div>
                 );
@@ -147,8 +148,8 @@ export default function SettingsPage() {
               When displayed, amounts are converted to your base currency using live rates
             </li>
             <li>
-              NGN uses a fixed fallback rate since the Frankfurter API does not
-              support Nigerian Naira
+              NGN, JMD, KES, QAR, and SAR use fixed fallback rates — Frankfurter
+              API does not support these currencies
             </li>
             <li>
               Rates refresh every time the dashboard loads

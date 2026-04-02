@@ -96,7 +96,7 @@
 
 .popular {
   border-color: var(--border-accent);
-  background: rgba(0, 212, 170, 0.04);
+  background: rgba(139, 92, 246, 0.06);
   box-shadow: var(--shadow-glow);
   transform: scale(1.04);
 }
@@ -181,7 +181,7 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: rgba(0, 212, 170, 0.12);
+  background: rgba(139, 92, 246, 0.15);
   color: var(--accent-start);
   display: flex;
   align-items: center;
@@ -207,7 +207,7 @@
 
 .ctaOutline:hover {
   border-color: var(--accent-start);
-  background: rgba(0, 212, 170, 0.05);
+  background: rgba(139, 92, 246, 0.05);
 }
 
 .ctaFilled {
@@ -224,6 +224,56 @@
 .ctaLoading {
   opacity: 0.7;
   cursor: wait;
+}
+
+/* Pro card actions */
+.proActions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.paymentLinkRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.paymentLink {
+  flex: 1;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-align: center;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.paymentLink:hover {
+  border-color: var(--accent-start);
+  color: var(--accent-start);
+  background: rgba(0, 212, 170, 0.05);
+}
+
+.copyLinkBtn {
+  padding: 10px 16px;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-full);
+  color: var(--accent-start);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.copyLinkBtn:hover {
+  background: rgba(139, 92, 246, 0.2);
 }
 
 @media (max-width: 860px) {

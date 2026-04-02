@@ -3,20 +3,49 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
 
 const CURRENCY_META = {
-  USD: { symbol: "$", flag: "🇺🇸", name: "US Dollar" },
-  EUR: { symbol: "€", flag: "🇪🇺", name: "Euro" },
-  GBP: { symbol: "£", flag: "🇬🇧", name: "British Pound" },
-  NGN: { symbol: "₦", flag: "🇳🇬", name: "Nigerian Naira" },
+  USD: { symbol: "$",  flag: "🇺🇸", name: "US Dollar" },
+  EUR: { symbol: "€",  flag: "🇪🇺", name: "Euro" },
+  GBP: { symbol: "£",  flag: "🇬🇧", name: "British Pound" },
+  CAD: { symbol: "CA$",flag: "🇨🇦", name: "Canadian Dollar" },
+  HKD: { symbol: "HK$",flag: "🇭🇰", name: "Hong Kong Dollar" },
+  ILS: { symbol: "₪",  flag: "🇮🇱", name: "Israeli Shekel" },
+  INR: { symbol: "₹",  flag: "🇮🇳", name: "Indian Rupee" },
+  JMD: { symbol: "J$", flag: "🇯🇲", name: "Jamaican Dollar" },
+  KES: { symbol: "KSh",flag: "🇰🇪", name: "Kenyan Shilling" },
+  MXN: { symbol: "MX$",flag: "🇲🇽", name: "Mexican Peso" },
+  NGN: { symbol: "₦",  flag: "🇳🇬", name: "Nigerian Naira" },
+  QAR: { symbol: "QR", flag: "🇶🇦", name: "Qatari Riyal" },
+  SAR: { symbol: "SR", flag: "🇸🇦", name: "Saudi Riyal" },
 };
 
-// Fallback rates (USD-based) when API is unavailable or for unsupported currencies
-const FALLBACK_RATES = { USD: 1, EUR: 0.86, GBP: 0.75, NGN: 1580 };
+// Currencies supported by Frankfurter API (will be fetched live)
+const FRANKFURTER_CURRENCIES = ["EUR", "GBP", "CAD", "HKD", "ILS", "INR", "MXN"];
+
+// Fallback rates (USD-based) for unsupported / offline currencies
+const FALLBACK_RATES = {
+  USD: 1,
+  EUR: 0.92,
+  GBP: 0.79,
+  CAD: 1.43,
+  HKD: 7.78,
+  ILS: 3.65,
+  INR: 86.5,
+  JMD: 157,
+  KES: 130,
+  MXN: 20.5,
+  NGN: 1580,
+  QAR: 3.64,
+  SAR: 3.75,
+};
+
+// Currencies that always use fallback (not in Frankfurter)
+const FALLBACK_ONLY = new Set(["NGN", "JMD", "KES", "QAR", "SAR"]);
 
 const CurrencyContext = createContext(null);
 
 export function CurrencyProvider({ children }) {
   const [baseCurrency, setBaseCurrencyState] = useState("USD");
-  const [rates, setRates] = useState(FALLBACK_RATES); // rates relative to USD
+  const [rates, setRates] = useState(FALLBACK_RATES);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [rateSource, setRateSource] = useState("fallback");
@@ -38,24 +67,23 @@ export function CurrencyProvider({ children }) {
     async function fetchRates() {
       setLoading(true);
       try {
+        const symbols = FRANKFURTER_CURRENCIES.join(",");
         const res = await fetch(
-          "https://api.frankfurter.app/latest?from=USD&to=EUR,GBP"
+          `https://api.frankfurter.app/latest?from=USD&to=${symbols}`
         );
         if (!res.ok) throw new Error("API error");
         const data = await res.json();
 
         if (!cancelled) {
           setRates({
+            ...FALLBACK_RATES,       // keep fallback-only currencies
             USD: 1,
-            EUR: data.rates.EUR,
-            GBP: data.rates.GBP,
-            NGN: FALLBACK_RATES.NGN, // Frankfurter doesn't support NGN
+            ...data.rates,           // overwrite with live data
           });
           setLastUpdated(data.date);
           setRateSource("live");
         }
       } catch {
-        // Keep fallback rates
         if (!cancelled) {
           setRateSource("fallback");
           setLastUpdated(null);
@@ -80,9 +108,6 @@ export function CurrencyProvider({ children }) {
 
   /**
    * Convert an amount from one currency to another using USD as the pivot.
-   * rates are all relative to USD, so:
-   *   amountInUSD = amount / rates[from]
-   *   amountInTo  = amountInUSD * rates[to]
    */
   const convert = useCallback(
     (amount, from, to) => {
@@ -101,8 +126,9 @@ export function CurrencyProvider({ children }) {
     const meta = CURRENCY_META[currencyCode] || CURRENCY_META.USD;
     const abs = Math.abs(value);
 
+    const highValueCurrencies = new Set(["NGN", "JMD", "KES", "INR", "QAR"]);
     let formatted;
-    if (currencyCode === "NGN" && abs >= 1000) {
+    if (highValueCurrencies.has(currencyCode) && abs >= 1000) {
       formatted = abs.toLocaleString("en-US", {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
@@ -130,6 +156,7 @@ export function CurrencyProvider({ children }) {
         convert,
         formatAmount,
         currencyMeta: CURRENCY_META,
+        fallbackOnly: FALLBACK_ONLY,
       }}
     >
       {children}
