@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import styles from "./Navbar.module.css";
+import AccountButton from "./AccountButton";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -45,6 +46,7 @@ export default function Navbar() {
 
           <div className={styles.navActions}>
             <a href="#hero" className={styles.navSignIn}>Dashboard</a>
+            <AccountButton />
             <a href="#pricing" className={`btn-primary ${styles.navCta}`}>
               <span>Get Started</span>
             </a>

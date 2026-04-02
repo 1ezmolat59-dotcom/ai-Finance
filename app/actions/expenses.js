@@ -1,6 +1,7 @@
 "use server";
 
 import { supabase } from "../../lib/supabase";
+import { createSupabaseServerClient } from "../../lib/supabase-server";
 
 export async function getExpenses(clientId) {
   if (!clientId) return [];
@@ -56,11 +57,22 @@ export async function addExpenseToDB(clientId, expenseParam) {
     }
   }
 
+  // Get the authenticated user's UUID (if signed in) to tag the row for RLS
+  let userId = null;
+  try {
+    const serverClient = await createSupabaseServerClient();
+    const { data: { user } } = await serverClient.auth.getUser();
+    userId = user?.id ?? null;
+  } catch {
+    // Auth not available (anon mode) — userId stays null
+  }
+
   // Insert the expense record
   const { data, error } = await supabase
     .from("expenses")
     .insert([{
       client_id: clientId,
+      user_id: userId,
       icon: expenseParam.icon,
       name: expenseParam.name,
       category: expenseParam.category,
