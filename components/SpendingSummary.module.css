@@ -1,0 +1,262 @@
+.container {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.subtitle strong {
+  color: #0f172a;
+}
+
+/* Period tabs */
+.periodTabs {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.tab {
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: none;
+  background: none;
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.tab:hover { color: #0f172a; }
+
+.tabActive {
+  background: #fff;
+  color: #0f172a;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+/* Error */
+.errorBanner {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+/* Category list */
+.categoryList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.categoryRow {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  grid-template-rows: auto auto;
+  gap: 4px 12px;
+  align-items: center;
+}
+
+.categoryMeta {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.categoryName {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.sourcePills {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.pillBank {
+  font-size: 10px;
+  font-weight: 600;
+  color: #2563eb;
+  background: #eff6ff;
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+
+.pillManual {
+  font-size: 10px;
+  font-weight: 600;
+  color: #16a34a;
+  background: #f0fdf4;
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+
+/* Bar */
+.barTrack {
+  grid-column: 1;
+  grid-row: 2;
+  height: 6px;
+  background: #f1f5f9;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+/* Amount + pct */
+.categoryAmount {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  align-self: center;
+}
+
+.categoryPct {
+  grid-column: 3;
+  grid-row: 1 / 3;
+  font-size: 12px;
+  color: #94a3b8;
+  white-space: nowrap;
+  align-self: center;
+  min-width: 38px;
+  text-align: right;
+}
+
+/* Source breakdown footer */
+.sourceBreakdown {
+  display: flex;
+  gap: 24px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+  flex-wrap: wrap;
+}
+
+.sourceItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.sourceDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sourceTotal {
+  font-weight: 600;
+  color: #0f172a;
+  margin-left: 2px;
+}
+
+/* Empty */
+.empty {
+  text-align: center;
+  padding: 40px 0;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+/* Skeleton */
+.skeletonList {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.skeletonRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.skeletonLabel {
+  height: 13px;
+  width: 35%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeletonBar {
+  height: 6px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeletonAmount {
+  height: 13px;
+  width: 15%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  align-self: flex-end;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/plaid/admin-sync",
+      "schedule": "0 6 * * *"
+    }
+  ]
+}
