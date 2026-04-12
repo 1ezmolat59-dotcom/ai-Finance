@@ -1,6 +1,6 @@
 'use server';
 
-import { createServerClient } from '@/lib/supabase-server';
+import { createSupabaseServerClient as createServerClient } from '@/lib/supabase-server';
 
 /**
  * getExpenses({ source, category, dateFrom, dateTo, limit, offset })

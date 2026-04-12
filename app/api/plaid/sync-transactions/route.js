@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { plaidClient, mapPlaidTransaction } from '@/lib/plaid';
 import { filterAndMapExpenses } from '@/lib/plaid-to-expenses';
-import { createServerClient } from '@/lib/supabase-server';
+import { createSupabaseServerClient as createServerClient } from '@/lib/supabase-server';
 
 /**
  * POST /api/plaid/sync-transactions

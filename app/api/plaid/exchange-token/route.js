@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { plaidClient, mapPlaidAccount } from '@/lib/plaid';
-import { createServerClient } from '@/lib/supabase-server';
+import { createSupabaseServerClient as createServerClient } from '@/lib/supabase-server';
 
 export async function POST(request) {
   try {
