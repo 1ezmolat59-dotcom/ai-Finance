@@ -13,12 +13,15 @@ import { filterAndMapExpenses } from '@/lib/plaid-to-expenses';
  * Call this from a cron job or scheduled task, NOT from the browser.
  */
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://placeholder.supabase.co',
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? 'placeholder-service-role-key'
+  );
+}
 
 export async function POST(request) {
+  const supabaseAdmin = getSupabaseAdmin();
   // Accept either:
   //   1. Vercel Cron auth:    Authorization: Bearer <CRON_SECRET>
   //   2. Internal secret:     x-internal-secret: <INTERNAL_API_SECRET>
