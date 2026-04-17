@@ -25,7 +25,13 @@ export default function AuthPage() {
     try {
       const supabase = getSupabase();
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/confirm`,
+          },
+        });
         if (error) throw error;
         setMessage("Check your email for a confirmation link.");
       } else {
