@@ -17,7 +17,7 @@ export async function getExpenses({
   limit = 50,
   offset = 0,
 } = {}) {
-  const supabase = createServerClient();
+  const supabase = await createServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Unauthorized');
 
@@ -47,7 +47,7 @@ export async function getExpenses({
  * broken out by source (manual vs plaid).
  */
 export async function getExpenseSummary({ dateFrom, dateTo } = {}) {
-  const supabase = createServerClient();
+  const supabase = await createServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Unauthorized');
 
@@ -88,7 +88,7 @@ export async function getExpenseSummary({ dateFrom, dateTo } = {}) {
  * Safe — only updates if the expense belongs to the current user.
  */
 export async function updateExpenseCategory(expenseId, category) {
-  const supabase = createServerClient();
+  const supabase = await createServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Unauthorized');
 
@@ -110,7 +110,7 @@ export async function updateExpenseCategory(expenseId, category) {
  * For manual expenses, just deletes.
  */
 export async function deleteExpense(expenseId) {
-  const supabase = createServerClient();
+  const supabase = await createServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Unauthorized');
 
